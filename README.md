@@ -1,7 +1,7 @@
 # 🖥️ ArchVisor
 
 > **An interactive Computer Organization & Architecture learning platform — built for CS22304.**  
-> Part of the [Omega Mu Gamma Studio](https://github.com/albertofelix08) open-source CS education toolkit.
+> Part of the [Omega Mu Gamma Studio](https://github.com/Omega-Mu-Gamma-Studio) open-source CS education toolkit.
 
 ---
 
