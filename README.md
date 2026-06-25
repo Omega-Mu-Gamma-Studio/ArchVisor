@@ -279,6 +279,4 @@ MIT License — see [LICENSE](./LICENSE) for details.
 
 **Omega Mu Gamma Studio** · Open-source CS education tools · [github.com/albertofelix08](https://github.com/albertofelix08)
 
-*Built at St. Xavier's Catholic College of Engineering*
-
 </div>
