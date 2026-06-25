@@ -11,7 +11,7 @@
 
 The name *ArchVisor* carries a dual meaning: a **visor** you look through to see inside the machine, and a **supervisor** — a systems-level term that reflects the scope of what this tool covers.
 
-ArchVisor is the fourth major project released under Omega Mu Gamma Studio, joining [SeeDS](https://github.com/albertofelix08), [Java-Chan](https://github.com/albertofelix08), and [GateLab](https://github.com/albertofelix08) as part of the studio's growing suite of open-source engineering education tools built at SXCCE.
+ArchVisor is the sixth major project released under Omega Mu Gamma Studio, joining [SeeDS](https://see-ds.vercel.app), [Java-Chan](https://java-chan.vercel.app), [GateLab](https://github.com/Omega-Mu-Gamma-Studio/GateLab), [KMapX](https://kmapx.vercel.app/), and [EG Suite](https://eg-suite.vercel.app/) as part of the studio's growing suite of open-source engineering education tools..
 
 ---
 
