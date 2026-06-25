@@ -95,8 +95,8 @@ ArchVisor is organized as a **dashboard shell** with **five unit modules**, each
 
 | Layer | Technology | Reason |
 |---|---|---|
-| **Framework** | React 18 + Vite 5 | Fast dev server, clean build, consistent with studio stack |
-| **State Management** | Zustand 4 | Lightweight slice-based state for independent simulation contexts |
+| **Framework** | React 19 + Vite 8 | Fast dev server, clean build, consistent with studio stack |
+| **State Management** | Zustand 5 | Lightweight slice-based state for independent simulation contexts |
 | **Styling** | Tailwind CSS 3 | Utility-first, consistent across the large component surface |
 | **Animation** | Framer Motion 11 | Component transitions, step reveals, register flash animations |
 | **Network/Node Diagrams** | React Flow 11 | Datapath viewer, anatomy explorer, cache coherence diagram |
