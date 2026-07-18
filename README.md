@@ -1,17 +1,19 @@
 # 🖥️ ArchVisor
 
-> **An interactive Computer Organization & Architecture learning platform — built for CS22304.**  
+> **An interactive Computer Organization & Architecture learning platform — built for CS22304.**
 > Part of the [Omega Mu Gamma Studio](https://github.com/Omega-Mu-Gamma-Studio) open-source CS education toolkit.
 
 ---
 
 ## 📌 Overview
 
-**ArchVisor** is a web-based, all-in-one interactive learning platform covering the full CS22304 — Computer Organization and Architecture syllabus. It provides students with hands-on simulators, step-by-step visualizers, and animated explainers across all five units of the course — from MIPS instruction encoding and binary arithmetic, all the way to pipeline hazard detection, cache simulation, and virtual memory translation.
+**ArchVisor** is a web-based, all-in-one interactive learning platform covering the full CS22304 — Computer Organization and Architecture syllabus. It gives students hands-on simulators, step-by-step visualizers, and animated explainers across all five units of the course — from MIPS instruction encoding and binary arithmetic, all the way to pipeline hazard detection, cache simulation, and virtual memory translation.
 
 The name *ArchVisor* carries a dual meaning: a **visor** you look through to see inside the machine, and a **supervisor** — a systems-level term that reflects the scope of what this tool covers.
 
-ArchVisor is the sixth major project released under Omega Mu Gamma Studio, joining [SeeDS](https://see-ds.vercel.app), [Java-Chan](https://java-chan.vercel.app), [GateLab](https://github.com/Omega-Mu-Gamma-Studio/GateLab), [KMapX](https://kmapx.vercel.app/), and [EG Suite](https://eg-suite.vercel.app/) as part of the studio's growing suite of open-source engineering education tools..
+ArchVisor is the sixth major project released under Omega Mu Gamma Studio, joining [SeeDS](https://see-ds.vercel.app), [Java-Chan](https://java-chan.vercel.app), [GateLab](https://github.com/Omega-Mu-Gamma-Studio/GateLab), [KMapX](https://kmapx.vercel.app/), and [EG Suite](https://eg-suite.vercel.app/) as part of the studio's growing suite of open-source engineering education tools.
+
+**Status: MVP complete.** All 23 planned sub-tools across 5 units are built and wired into the app shell. See [Known Issues](#-known-issues) below before you call it release-ready.
 
 ---
 
@@ -29,7 +31,7 @@ ArchVisor is the sixth major project released under Omega Mu Gamma Studio, joini
 
 ## ✨ Features
 
-ArchVisor is organized as a **dashboard shell** with **five unit modules**, each containing dedicated sub-tools. A total of **23 sub-tools** are planned across the full release.
+ArchVisor is a **dashboard shell** with **five unit modules**, each containing dedicated sub-tools. All **23 sub-tools** shipped in the MVP.
 
 ---
 
@@ -97,123 +99,59 @@ ArchVisor is organized as a **dashboard shell** with **five unit modules**, each
 |---|---|---|
 | **Framework** | React 19 + Vite 8 | Fast dev server, clean build, consistent with studio stack |
 | **State Management** | Zustand 5 | Lightweight slice-based state for independent simulation contexts |
-| **Styling** | Tailwind CSS 3 | Utility-first, consistent across the large component surface |
-| **Animation** | Framer Motion 11 | Component transitions, step reveals, register flash animations |
+| **Styling** | Tailwind CSS 4 (via `@tailwindcss/vite`) | Utility-first, no separate config file — plugin-driven |
+| **Animation** | Framer Motion 12 | Component transitions, step reveals, register flash animations |
 | **Network/Node Diagrams** | React Flow 11 | Datapath viewer, anatomy explorer, cache coherence diagram |
 | **Data-Driven SVG** | D3.js 7 | Pipeline timing grid, cache state table, memory hierarchy, multithreading timeline |
 | **Custom SVG Components** | Hand-crafted React SVG | Bit-field renderers (MIPS encoding, IEEE 754, virtual address), Flynn's quadrant, USB diagrams |
 | **Code Editor** | CodeMirror 6 | MIPS assembly input with syntax highlighting for sub-tools 1.4 and 3.2 |
-| **Routing** | React Router v6 | Unit-level and sub-tool-level nested routing |
+| **Routing** | React Router v7 | Unit-level and sub-tool-level nested routing |
 | **Simulation Logic** | Vanilla JS (no library) | Pure functions for Booth's, restoring division, IEEE 754, cache math, MIPS interpreter, pipeline engine, TLB |
 
 > All simulation engines are written as **pure JavaScript functions** in `src/engines/`, completely decoupled from React. This keeps them testable in isolation and allows clean step-state capture for animated walkthroughs.
 
 ---
 
-## 📦 Dependencies
-
-```json
-{
-  "dependencies": {
-    "react": "^18",
-    "react-dom": "^18",
-    "react-router-dom": "^6",
-    "zustand": "^4",
-    "framer-motion": "^11",
-    "reactflow": "^11",
-    "d3": "^7",
-    "@codemirror/view": "^6",
-    "@codemirror/state": "^6"
-  },
-  "devDependencies": {
-    "vite": "^5",
-    "@vitejs/plugin-react": "^4",
-    "tailwindcss": "^3",
-    "autoprefixer": "^10",
-    "postcss": "^8"
-  }
-}
-```
-
----
-
 ## 🗂️ Folder Structure
 
 ```
-archvisor/
+ArchVisor/
 ├── public/
-│   └── favicon.svg
+│   ├── favicon.svg
+│   └── icons.svg
 ├── src/
 │   ├── components/
-│   │   ├── shell/                  # Sidebar, TopBar, Layout wrapper
-│   │   └── shared/                 # BitFieldRenderer, StepControls, PipelineGrid, etc.
+│   │   ├── shell/                  # TopBar, Sidebar
+│   │   └── shared/                 # BitFieldRenderer, StepControls, PipelineGrid, HazardBadge
 │   ├── units/
-│   │   ├── unit1/                  # Sub-tool components for Unit I
-│   │   │   ├── AnatomyExplorer.jsx
-│   │   │   ├── InstructionEncoder.jsx
-│   │   │   ├── RegisterFileViewer.jsx
-│   │   │   └── MIPSExecutor.jsx
-│   │   ├── unit2/                  # Sub-tool components for Unit II
-│   │   │   ├── BinaryAdder.jsx
-│   │   │   ├── BoothMultiplier.jsx
-│   │   │   ├── RestoringDivision.jsx
-│   │   │   ├── IEEE754Explorer.jsx
-│   │   │   └── SubwordDemo.jsx
-│   │   ├── unit3/                  # Sub-tool components for Unit III
-│   │   │   ├── DatapathViewer.jsx
-│   │   │   ├── PipelineAnimator.jsx
-│   │   │   ├── HazardClassifier.jsx
-│   │   │   └── SuperscalarComparator.jsx
-│   │   ├── unit4/                  # Sub-tool components for Unit IV
-│   │   │   ├── FlynnTaxonomy.jsx
-│   │   │   ├── MultithreadingVisualizer.jsx
-│   │   │   ├── CacheCoherence.jsx
-│   │   │   ├── GPUExplainer.jsx
-│   │   │   └── ClusterOverview.jsx
-│   │   └── unit5/                  # Sub-tool components for Unit V
-│   │       ├── MemoryHierarchy.jsx
-│   │       ├── CacheSimulator.jsx
-│   │       ├── VirtualMemoryExplorer.jsx
-│   │       ├── IOComparator.jsx
-│   │       └── USBOverview.jsx
+│   │   ├── unit1/                  # AnatomyExplorer, InstructionEncoder, RegisterFileViewer, MIPSExecutor
+│   │   ├── unit2/                  # BinaryAdder, BoothMultiplier, RestoringDivision, IEEE754Explorer, SubwordDemo
+│   │   ├── unit3/                  # DatapathViewer, PipelineAnimator, HazardClassifier, SuperscalarComparator
+│   │   ├── unit4/                  # FlynnTaxonomy, MultithreadingVisualizer, CacheCoherence, GPUExplainer, ClusterOverview
+│   │   └── unit5/                  # MemoryHierarchy, CacheSimulator, VirtualMemoryExplorer, IOComparator, USBOverview
 │   ├── engines/                    # Pure JS simulation logic (no React)
-│   │   ├── mipsInterpreter.js      # MIPS register file, PC, instruction execution
-│   │   ├── pipelineEngine.js       # 5-stage pipeline, hazard detection, forwarding, stalls
-│   │   ├── cacheSimulator.js       # Cache sets/ways, tag extraction, LRU/FIFO/Random
-│   │   ├── ieee754.js              # IEEE 754 conversion, FP operations, rounding
-│   │   ├── booth.js                # Booth's multiplication algorithm, step capture
-│   │   ├── restoringDivision.js    # Restoring division algorithm, step capture
-│   │   ├── binaryArithmetic.js     # Binary add/subtract, carry propagation, overflow
-│   │   └── tlb.js                  # TLB lookup, page table walk, address decomposition
+│   │   ├── mipsInterpreter.js
+│   │   ├── pipelineEngine.js
+│   │   ├── cacheSimulator.js
+│   │   ├── ieee754.js
+│   │   ├── booth.js
+│   │   ├── restoringDivision.js
+│   │   ├── binaryArithmetic.js
+│   │   └── tlb.js
 │   ├── store/                      # Zustand slices
-│   │   ├── navigationStore.js      # Active unit, active sub-tool, progress tracking
-│   │   ├── mipsStore.js            # Register file state, PC, execution log
-│   │   ├── pipelineStore.js        # Pipeline simulation state
-│   │   └── cacheStore.js           # Cache simulation state
+│   │   ├── navigationStore.js
+│   │   ├── mipsStore.js
+│   │   ├── pipelineStore.js
+│   │   └── cacheStore.js
+│   ├── pages/                      # Home, UnitPage, ToolPage (route-level components)
 │   ├── styles/
-│   │   └── index.css               # Tailwind directives + global overrides
 │   ├── App.jsx                     # Router root, layout shell
 │   └── main.jsx
 ├── index.html
 ├── vite.config.js
-├── tailwind.config.js
-├── postcss.config.js
+├── eslint.config.js
 └── README.md
 ```
-
----
-
-## 🗓️ Development Phases
-
-| Phase | Scope | Key Deliverables |
-|---|---|---|
-| **Phase 1** | Shell + Unit I | Dashboard shell (sidebar, routing, theming), Computer Anatomy Explorer, MIPS Instruction Encoder/Decoder, Register File Viewer, MIPS Mini-Executor |
-| **Phase 2** | Unit II | Binary Adder/Subtractor, Booth's Multiplier, Restoring Division, IEEE 754 Explorer, Subword Demo |
-| **Phase 3** | Unit III ⭐ | MIPS Datapath Viewer, Pipeline Diagram Animator, Hazard Classifier, Superscalar Comparator |
-| **Phase 4** | Unit IV | Flynn's Taxonomy Explorer, Multithreading Visualizer, Cache Coherence Explorer, GPU Explainer, Cluster Overview |
-| **Phase 5** | Unit V ⭐ | Memory Hierarchy Visualizer, Cache Simulator, Virtual Memory & TLB Explorer, I/O Methods Comparator, USB Overview |
-
-> Phases 3 and 5 contain the two flagship tools (Pipeline Diagram Animator and Cache Simulator) and will be the most development-intensive sprints.
 
 ---
 
@@ -227,8 +165,8 @@ archvisor/
 
 ```bash
 # Clone the repository
-git clone https://github.com/albertofelix08/archvisor.git
-cd archvisor
+git clone https://github.com/Omega-Mu-Gamma-Studio/ArchVisor.git
+cd ArchVisor
 
 # Install dependencies
 npm install
@@ -248,13 +186,22 @@ npm run preview
 
 ---
 
+## ⚠️ Known Issues
+
+These turned up in a lint/build pass on the current MVP — flagging so they get fixed before this ships beyond testing:
+
+- **`ClusterOverview.jsx` (Unit 4.5)** — the MPI section's "next" button calls `setPhase((p + 1) % 4)`, but `p` is undefined (should be `phase`). This throws when clicked.
+- **`GPUExplainer.jsx` (Unit 4.4)** — the warp grid's cell label (`C{c + 1}`) references `c` outside the `.map()` scope that defines it. This throws on render of that label.
+- **Bundle size** — the production build is a single ~1.1 MB JS chunk (326 KB gzipped). Worth splitting per-tool with `React.lazy` given there are 23 sub-tools, most of which aren't needed on initial load.
+- **Lint** — `npm run lint` currently reports 43 issues (mostly unused imports/variables, one `Math.random()`-during-render purity warning in `MultithreadingVisualizer.jsx`). Worth a cleanup pass before merging further features.
+
+---
+
 ## 🧑‍💻 Contributing
 
-ArchVisor is an open-source project under Omega Mu Gamma Studio. Contributions, bug reports, and feature suggestions are welcome.
+ArchVisor is an open-source project under Omega Mu Gamma Studio. Contributions, bug reports, and feature suggestions are welcome — open an issue or PR on the repo.
 
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before submitting a pull request.
-
-**Studio Lead & Project Founder:** [Alberto Felix](https://github.com/albertofelix08)  
+**Studio Lead & Project Founder:** [Alberto Felix](https://github.com/albertofelix08)
 **Co-Lead:** [Aaron](https://github.com/aaronmcgeo)
 
 ---
@@ -271,12 +218,12 @@ This tool is built around the following course textbooks:
 
 ## 📄 License
 
-MIT License — see [LICENSE](./LICENSE) for details.
+**PolyForm Noncommercial License 1.0.0** — see [LICENSE](./LICENSE) for full terms. This is **not** MIT: noncommercial use only.
 
 ---
 
 <div align="center">
 
-**Omega Mu Gamma Studio** · Open-source CS education tools · [github.com/albertofelix08](https://github.com/albertofelix08)
+**Omega Mu Gamma Studio** · Open-source CS education tools · [github.com/Omega-Mu-Gamma-Studio](https://github.com/Omega-Mu-Gamma-Studio)
 
 </div>
