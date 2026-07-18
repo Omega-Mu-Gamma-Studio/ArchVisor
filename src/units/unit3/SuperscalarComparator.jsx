@@ -197,7 +197,7 @@ export default function SuperscalarComparator() {
           </div>
           {superscalarResult && (
             <SuperscalarGrid
-              diagram={superscalarResult}
+              diagram={superscalarResult.diagram}
               currentCycle={currentCycle}
             />
           )}
