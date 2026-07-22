@@ -152,6 +152,13 @@ p { margin: 0; }
   color: var(--accent-text);
 }
 
+/* ── Fun Fact Card — hide on narrow viewports ────────────────── */
+@media (max-width: 640px) {
+  .fun-fact-card {
+    display: none !important;
+  }
+}
+
 /* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

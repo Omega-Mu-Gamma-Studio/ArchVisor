@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import FunFactCard from '../components/shared/FunFactCard.jsx'
 
 const UNITS = [
   {
@@ -188,6 +189,7 @@ export default function Home() {
           BUILT AT OMEGA MU GAMMA STUDIO
         </div>
       </div>
+      <FunFactCard unitId="all" />
     </div>
   )
 }
