@@ -97,6 +97,12 @@ function parseRegs(instr) {
       break
   }
 
+  // lw/addi (and similar I-type ops) write their destination into `rt`,
+  // not `rd`. Every hazard check below compares against `.rd`, so without
+  // this fallback, a load-use hazard like `lw $t0, 0($s0)` followed by
+  // `add $t1, $t0, $t0` was silently going undetected everywhere.
+  if (result.writes && result.rd === null) result.rd = result.rt
+
   return result
 }
 

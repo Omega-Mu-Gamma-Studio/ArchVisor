@@ -8,7 +8,7 @@
  * Bus transaction log panel
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import ReactFlow, {
   Handle,
   Position,
@@ -20,6 +20,7 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getTransition } from '../../engines/mesiTransitions.js'
 
 // ── MESI State Machine Nodes ──────────────────────────────
 const MESI_NODES = [
@@ -101,31 +102,12 @@ function generateEvents(count) {
 
 const MESI_STATES = { I: 'Invalid', S: 'Shared', E: 'Exclusive', M: 'Modified' }
 
-function getTransition(prevState, event, otherCoresHaveIt) {
-  if (prevState === 'I') {
-    if (event.type === 'Read') return otherCoresHaveIt ? { next: 'S', edge: 'i-s' } : { next: 'E', edge: 'i-e' }
-    if (event.type === 'Write') return { next: 'M', edge: 'i-e' } // simplified: goes through E then M
-  }
-  if (prevState === 'S') {
-    if (event.type === 'Read') return { next: 'S', edge: null }
-    if (event.type === 'Write') return { next: 'M', edge: 's-e' }
-  }
-  if (prevState === 'E') {
-    if (event.type === 'Read') return otherCoresHaveIt ? { next: 'S', edge: 'e-s' } : { next: 'E', edge: null }
-    if (event.type === 'Write') return { next: 'M', edge: 'e-m' }
-  }
-  if (prevState === 'M') {
-    if (event.type === 'Read') return otherCoresHaveIt ? { next: 'S', edge: 'm-s' } : { next: 'M', edge: null }
-    if (event.type === 'Write') return { next: 'M', edge: null }
-  }
-  return { next: prevState, edge: null }
-}
-
-export default function CacheCoherence() {
-  const [coreCount, setCoreCount] = useState(3)
-  const [events, setEvents] = useState(() => generateEvents(8))
+export default function CacheCoherence({ initialScenario = null, onScenarioSolved } = {}) {
+  const [coreCount, setCoreCount] = useState(initialScenario?.coreCount ?? 3)
+  const [events, setEvents] = useState(() => initialScenario?.events ?? generateEvents(8))
   const [currentEvent, setCurrentEvent] = useState(-1)
   const [isRunning, setIsRunning] = useState(false)
+  const firedRef = useRef(false)
 
   // Core cache states: coreId → { addr → state }
   const [coreStates, setCoreStates] = useState(() => {
@@ -146,6 +128,16 @@ export default function CacheCoherence() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(MESI_EDGES)
 
   const visibleEvents = currentEvent >= 0 ? events.slice(0, currentEvent + 1) : []
+
+  // ── Boss win condition: derived, not stored in state ─────
+  const solved = Boolean(initialScenario && events.length > 0 && currentEvent >= events.length - 1)
+
+  useEffect(() => {
+    if (solved && !firedRef.current && onScenarioSolved) {
+      firedRef.current = true
+      onScenarioSolved()
+    }
+  }, [solved, onScenarioSolved])
 
   const handleStepForward = () => {
     if (currentEvent < events.length - 1) {
@@ -274,7 +266,7 @@ export default function CacheCoherence() {
     setCurrentEvent(-1)
     setActiveEdge(null)
     setBusLog([])
-    setEvents(generateEvents(8))
+    setEvents(initialScenario?.events ?? generateEvents(8))
     const freshStates = {}
     for (let c = 1; c <= 4; c++) {
       freshStates[c] = {}
@@ -309,6 +301,20 @@ export default function CacheCoherence() {
           Step through Read/Write events and watch the MESI protocol maintain coherence across cores.
         </p>
       </div>
+
+      {initialScenario && (
+        <div style={{
+          padding: '10px 16px', borderRadius: '10px',
+          border: `1px solid ${solved ? 'rgba(34,197,94,0.4)' : 'var(--accent-border)'}`,
+          background: solved ? 'rgba(34,197,94,0.1)' : 'var(--accent-dim)',
+          fontFamily: 'var(--mono)', fontSize: '12px',
+          color: solved ? '#22c55e' : 'var(--accent-text)',
+        }}>
+          {solved
+            ? '✓ Boss cleared — all 4 cores stayed coherent through the whole burst'
+            : '🎯 Objective: step (or Run All) through every interleaved read/write below'}
+        </div>
+      )}
 
       {/* Config */}
       <div className="glass-card" style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>

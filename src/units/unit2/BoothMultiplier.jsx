@@ -9,17 +9,18 @@
  * Step Forward / Back / Run All / Reset controls
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { boothMultiply } from '../../engines/booth.js'
 import StepControls from '../../components/shared/StepControls.jsx'
 
-export default function BoothMultiplier() {
-  const [multiplicand, setMultiplicand] = useState(3)
-  const [multiplier, setMultiplier] = useState(4)
-  const [bits, setBits] = useState(8)
+export default function BoothMultiplier({ initialScenario = null, onScenarioSolved } = {}) {
+  const [multiplicand, setMultiplicand] = useState(initialScenario?.multiplicand ?? 3)
+  const [multiplier, setMultiplier] = useState(initialScenario?.multiplier ?? 4)
+  const [bits, setBits] = useState(initialScenario?.bitWidth ?? 8)
   const [currentStep, setCurrentStep] = useState(-1)
   const [isRunning, setIsRunning] = useState(false)
+  const firedRef = useRef(false)
 
   const result = useMemo(() => {
     try {
@@ -35,6 +36,16 @@ export default function BoothMultiplier() {
 
   const canStepForward = currentStep < totalSteps - 1
   const canStepBack = currentStep >= 0
+
+  // ── Boss win condition: derived, not stored in state ─────
+  const solved = Boolean(initialScenario && totalSteps > 0 && currentStep >= totalSteps - 1)
+
+  useEffect(() => {
+    if (solved && !firedRef.current && onScenarioSolved) {
+      firedRef.current = true
+      onScenarioSolved()
+    }
+  }, [solved, onScenarioSolved])
 
   const handleStepForward = () => {
     if (currentStep < totalSteps - 1) setCurrentStep(s => s + 1)
@@ -75,6 +86,20 @@ export default function BoothMultiplier() {
           Step through Booth's multiplication algorithm iteration by iteration.
         </p>
       </div>
+
+      {initialScenario && (
+        <div style={{
+          padding: '10px 16px', borderRadius: '10px',
+          border: `1px solid ${solved ? 'rgba(34,197,94,0.4)' : 'var(--accent-border)'}`,
+          background: solved ? 'rgba(34,197,94,0.1)' : 'var(--accent-dim)',
+          fontFamily: 'var(--mono)', fontSize: '12px',
+          color: solved ? '#22c55e' : 'var(--accent-text)',
+        }}>
+          {solved
+            ? `✓ Boss cleared — ${multiplicand} × ${multiplier} worked out to ${result?.product ?? '?'}`
+            : `🎯 Objective: step all the way through ${multiplicand} × ${multiplier} to the final product`}
+        </div>
+      )}
 
       {/* Configuration */}
       <div className="glass-card" style={{ padding: '20px', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>

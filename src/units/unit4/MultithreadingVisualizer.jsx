@@ -95,7 +95,7 @@ export default function MultithreadingVisualizer() {
         }
       }
     }
-    return { utilized: u, total }
+    return { utilized: u, total: t }
   }, [timeline, currentCycle])
 
   const utilization = total > 0 ? (utilized / total) * 100 : 0
