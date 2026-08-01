@@ -13,7 +13,7 @@ The name *ArchVisor* carries a dual meaning: a **visor** you look through to see
 
 ArchVisor is the sixth major project released under Omega Mu Gamma Studio, joining [SeeDS](https://see-ds.vercel.app), [Java-Chan](https://java-chan.vercel.app), [GateLab](https://github.com/Omega-Mu-Gamma-Studio/GateLab), [KMapX](https://kmapx.vercel.app/), and [EG Suite](https://eg-suite.vercel.app/) as part of the studio's growing suite of open-source engineering education tools.
 
-**Status: MVP complete.** All 23 planned sub-tools across 5 units are built and wired into the app shell. See [Known Issues](#-known-issues) below before you call it release-ready.
+**Status: MVP complete + gamification layer live.** All 23 planned sub-tools across 5 units are built and wired into the app shell, and a full engagement/fun layer (boss battles, arcade hub, streaks, XP, achievements) now ships on top via `main.jsx`. See [Known Issues](#-known-issues) below before you call it release-ready.
 
 ---
 
@@ -93,6 +93,31 @@ ArchVisor is a **dashboard shell** with **five unit modules**, each containing d
 
 ---
 
+## 🎮 Gamification & Fun Layer
+
+A fully additive engagement layer sits on top of the 23 sub-tools, live via `src/gamification/` (mounted in `main.jsx` through `AppWithGamification.jsx` — `App.jsx` and every unit/engine file remain untouched).
+
+**Core layer:**
+
+| Feature | What it does |
+|---|---|
+| Boss Battles | Per-unit boss encounters (`/unit/:unitId/boss`) built on the real engines and scenario content |
+| Arcade Hub | Central hub page surfacing speedrun, race, and sandbox modes across tools |
+| Speedrun Mode | Per-tool timer with best-time tracking |
+| Streak Tracker | Correct-answer streaks with a prediction-gate check before each answer is revealed |
+| Narrator / Analogy Modes | Optional alternate copy overlays (never touch engine output) |
+| Achievement Badges | Toast notifications + a dedicated `/achievements` page |
+| Sandbox & Race Modes | Relaxed-input and competitive variants wrapped around existing tools |
+| Meme-able Fail States | Animated failure states with rotating flavor text |
+| Challenge a Friend | Shareable, encoded challenge links |
+| Easter Egg | Hidden trigger, mounted at the layout level |
+
+**v2 layer** (`src/gamification/v2/`, toggle-able independently via the "✨ Fun layer" pill): adds XP + levels, weak-spot tracking tied to a concept taxonomy, comeback rewards, a Mastery Map (`/mastery-map`) covering all 23 real tool IDs, Ghost Replay, exportable report cards, and a cross-unit Gauntlet Mode (`/gauntlet`) that pulls questions straight from the real simulation engines (Booth's, restoring division, hazard classification, cache) rather than hand-authored answers.
+
+Both layers persist to their own namespaced `localStorage` keys, add no new dependencies, and can be fully disabled without touching the core app.
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology | Reason |
@@ -143,6 +168,10 @@ ArchVisor/
 │   │   ├── mipsStore.js
 │   │   ├── pipelineStore.js
 │   │   └── cacheStore.js
+│   ├── gamification/                # Fun/engagement layer (fully additive, see below)
+│   │   ├── AppWithGamification.jsx  # drop-in router used by main.jsx
+│   │   ├── bossfight/, components/, content/, hooks/, pages/, store/, utils/
+│   │   └── v2/                      # XP, Mastery Map, Gauntlet, Ghost Replay, etc.
 │   ├── pages/                      # Home, UnitPage, ToolPage (route-level components)
 │   ├── styles/
 │   ├── App.jsx                     # Router root, layout shell
@@ -190,10 +219,10 @@ npm run preview
 
 These turned up in a lint/build pass on the current MVP — flagging so they get fixed before this ships beyond testing:
 
-- **`ClusterOverview.jsx` (Unit 4.5)** — the MPI section's "next" button calls `setPhase((p + 1) % 4)`, but `p` is undefined (should be `phase`). This throws when clicked.
-- **`GPUExplainer.jsx` (Unit 4.4)** — the warp grid's cell label (`C{c + 1}`) references `c` outside the `.map()` scope that defines it. This throws on render of that label.
-- **Bundle size** — the production build is a single ~1.1 MB JS chunk (326 KB gzipped). Worth splitting per-tool with `React.lazy` given there are 23 sub-tools, most of which aren't needed on initial load.
-- **Lint** — `npm run lint` currently reports 43 issues (mostly unused imports/variables, one `Math.random()`-during-render purity warning in `MultithreadingVisualizer.jsx`). Worth a cleanup pass before merging further features.
+- **`ClusterOverview.jsx` (Unit 4.5)** — the MPI section's "next" button calls `setPhase((p + 1) % 4)`, but `p` is undefined (should be `phase`). This throws when clicked. **Still open.**
+- **`GPUExplainer.jsx` (Unit 4.4)** — the warp grid's cell label (`C{c + 1}`) references `c` outside the `.map()` scope that defines it. This throws on render of that label. **Still open.**
+- **Bundle size** — now a single **~2.09 MB JS chunk (593 KB gzipped)**, up from ~1.1 MB (326 KB gzipped) now that the gamification + v2 layers ship unconditionally on first load. Splitting per-tool and per-gamification-feature with `React.lazy` is now the top priority, not just a nice-to-have — the fun layer alone is a meaningful fraction of that growth and most visitors won't touch most of it in a given session.
+- **Lint** — `npm run lint` currently reports 45 issues (mostly unused imports/variables, one `Math.random()`-during-render purity warning in `MultithreadingVisualizer.jsx`, and a set-state-in-effect warning in `HazardClassifier.jsx`). Worth a cleanup pass before merging further features.
 
 ---
 
