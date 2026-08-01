@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import FunFactCard from '../components/shared/FunFactCard.jsx'
 
 // ── Unit I Components ──────────────────────────────────────
 import AnatomyExplorer from '../units/unit1/AnatomyExplorer.jsx'
@@ -107,6 +108,7 @@ export default function ToolPage() {
           </button>
           <ToolComponent />
         </div>
+        <FunFactCard unitId={Number(unitId)} />
       </div>
     )
   }
@@ -115,6 +117,7 @@ export default function ToolPage() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div className="bg-grid" />
+      <FunFactCard unitId={Number(unitId)} />
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: '100px 24px 80px' }}>
 
         <button
