@@ -1,38 +1,39 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import FunFactCard from '../components/shared/FunFactCard.jsx'
 
 // ── Unit I Components ──────────────────────────────────────
-import AnatomyExplorer from '../units/unit1/AnatomyExplorer.jsx'
-import InstructionEncoder from '../units/unit1/InstructionEncoder.jsx'
-import RegisterFileViewer from '../units/unit1/RegisterFileViewer.jsx'
-import MIPSExecutor from '../units/unit1/MIPSExecutor.jsx'
+const AnatomyExplorer = lazy(() => import('../units/unit1/AnatomyExplorer.jsx'))
+const InstructionEncoder = lazy(() => import('../units/unit1/InstructionEncoder.jsx'))
+const RegisterFileViewer = lazy(() => import('../units/unit1/RegisterFileViewer.jsx'))
+const MIPSExecutor = lazy(() => import('../units/unit1/MIPSExecutor.jsx'))
 
 // ── Unit II Components ──────────────────────────────────────
-import BinaryAdder from '../units/unit2/BinaryAdder.jsx'
-import BoothMultiplier from '../units/unit2/BoothMultiplier.jsx'
-import RestoringDivision from '../units/unit2/RestoringDivision.jsx'
-import IEEE754Explorer from '../units/unit2/IEEE754Explorer.jsx'
-import SubwordDemo from '../units/unit2/SubwordDemo.jsx'
+const BinaryAdder = lazy(() => import('../units/unit2/BinaryAdder.jsx'))
+const BoothMultiplier = lazy(() => import('../units/unit2/BoothMultiplier.jsx'))
+const RestoringDivision = lazy(() => import('../units/unit2/RestoringDivision.jsx'))
+const IEEE754Explorer = lazy(() => import('../units/unit2/IEEE754Explorer.jsx'))
+const SubwordDemo = lazy(() => import('../units/unit2/SubwordDemo.jsx'))
 
 // ── Unit III Components ─────────────────────────────────────
-import DatapathViewer from '../units/unit3/DatapathViewer.jsx'
-import PipelineAnimator from '../units/unit3/PipelineAnimator.jsx'
-import HazardClassifier from '../units/unit3/HazardClassifier.jsx'
-import SuperscalarComparator from '../units/unit3/SuperscalarComparator.jsx'
+const DatapathViewer = lazy(() => import('../units/unit3/DatapathViewer.jsx'))
+const PipelineAnimator = lazy(() => import('../units/unit3/PipelineAnimator.jsx'))
+const HazardClassifier = lazy(() => import('../units/unit3/HazardClassifier.jsx'))
+const SuperscalarComparator = lazy(() => import('../units/unit3/SuperscalarComparator.jsx'))
 
 // ── Unit IV Components ──────────────────────────────────────
-import FlynnTaxonomy from '../units/unit4/FlynnTaxonomy.jsx'
-import MultithreadingVisualizer from '../units/unit4/MultithreadingVisualizer.jsx'
-import CacheCoherence from '../units/unit4/CacheCoherence.jsx'
-import GPUExplainer from '../units/unit4/GPUExplainer.jsx'
-import ClusterOverview from '../units/unit4/ClusterOverview.jsx'
+const FlynnTaxonomy = lazy(() => import('../units/unit4/FlynnTaxonomy.jsx'))
+const MultithreadingVisualizer = lazy(() => import('../units/unit4/MultithreadingVisualizer.jsx'))
+const CacheCoherence = lazy(() => import('../units/unit4/CacheCoherence.jsx'))
+const GPUExplainer = lazy(() => import('../units/unit4/GPUExplainer.jsx'))
+const ClusterOverview = lazy(() => import('../units/unit4/ClusterOverview.jsx'))
 
 // ── Unit V Components ──────────────────────────────────────
-import MemoryHierarchy from '../units/unit5/MemoryHierarchy.jsx'
-import CacheSimulator from '../units/unit5/CacheSimulator.jsx'
-import VirtualMemoryExplorer from '../units/unit5/VirtualMemoryExplorer.jsx'
-import IOComparator from '../units/unit5/IOComparator.jsx'
-import USBOverview from '../units/unit5/USBOverview.jsx'
+const MemoryHierarchy = lazy(() => import('../units/unit5/MemoryHierarchy.jsx'))
+const CacheSimulator = lazy(() => import('../units/unit5/CacheSimulator.jsx'))
+const VirtualMemoryExplorer = lazy(() => import('../units/unit5/VirtualMemoryExplorer.jsx'))
+const IOComparator = lazy(() => import('../units/unit5/IOComparator.jsx'))
+const USBOverview = lazy(() => import('../units/unit5/USBOverview.jsx'))
 
 // ── Component Registry: unitId → { toolId → Component } ───
 const COMPONENT_MAP = {
@@ -71,6 +72,25 @@ const COMPONENT_MAP = {
   },
 }
 
+function ToolLoadingFallback() {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '300px', gap: '10px',
+      fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--text-muted)',
+      letterSpacing: '0.06em', textTransform: 'uppercase',
+    }}>
+      <span style={{
+        width: '14px', height: '14px', borderRadius: '50%',
+        border: '2px solid var(--border)', borderTopColor: 'var(--accent-text)',
+        animation: 'spin 0.7s linear infinite',
+      }} />
+      Loading tool…
+      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
+    </div>
+  )
+}
+
 export default function ToolPage() {
   const { unitId, toolId } = useParams()
   const navigate = useNavigate()
@@ -106,7 +126,9 @@ export default function ToolPage() {
             </svg>
             Unit {unitId}
           </button>
-          <ToolComponent />
+          <Suspense fallback={<ToolLoadingFallback />}>
+            <ToolComponent />
+          </Suspense>
         </div>
         <FunFactCard unitId={Number(unitId)} />
       </div>

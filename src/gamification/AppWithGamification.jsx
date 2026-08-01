@@ -14,6 +14,7 @@
  */
 
 import { createBrowserRouter, RouterProvider, Outlet, Link } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import TopBar from '../components/shell/TopBar.jsx'
 import Sidebar from '../components/shell/Sidebar.jsx'
 import Home from '../pages/Home.jsx'
@@ -22,16 +23,31 @@ import ToolPage from '../pages/ToolPage.jsx'
 
 import AchievementToast from './components/AchievementToast.jsx'
 import EasterEgg from './components/EasterEgg.jsx'
-import AchievementsPage from './pages/AchievementsPage.jsx'
-import BossBattlePage from './pages/BossBattlePage.jsx'
-import ArcadeHub from './pages/ArcadeHub.jsx'
+// Route-level gamification pages are lazy: most visits land on the core
+// tools and never touch the arcade/boss/mastery/gauntlet surface. Boss
+// battles alone now pull in three.js + react-three-fiber for the 3D
+// arena, so deferring this chunk matters a lot more than it used to.
+const AchievementsPage = lazy(() => import('./pages/AchievementsPage.jsx'))
+const BossBattlePage = lazy(() => import('./pages/BossBattlePage.jsx'))
+const ArcadeHub = lazy(() => import('./pages/ArcadeHub.jsx'))
 
 import XPBar from './v2/components/XPBar.jsx'
 import LevelUpToast from './v2/components/LevelUpToast.jsx'
 import WeakSpotNudge from './v2/components/WeakSpotNudge.jsx'
-import MasteryMap from './v2/components/MasteryMap.jsx'
-import GauntletMode from './v2/components/GauntletMode.jsx'
+const MasteryMap = lazy(() => import('./v2/components/MasteryMap.jsx'))
+const GauntletMode = lazy(() => import('./v2/components/GauntletMode.jsx'))
 import useV2SettingsStore from './v2/store/v2SettingsStore.js'
+
+function RouteLoadingFallback() {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '60vh', color: 'rgba(255,255,255,0.5)', fontSize: 13,
+    }}>
+      Loading…
+    </div>
+  )
+}
 
 function V2Toggle() {
   const v2Enabled = useV2SettingsStore((s) => s.v2Enabled)
@@ -117,11 +133,11 @@ const router = createBrowserRouter([
       { index: true,                            element: <Home /> },
       { path: 'unit/:unitId',                   element: <UnitPage /> },
       { path: 'unit/:unitId/tool/:toolId',      element: <ToolPage /> },
-      { path: 'unit/:unitId/boss',              element: <BossBattlePage /> },
-      { path: 'achievements',                   element: <AchievementsPage /> },
-      { path: 'arcade',                         element: <ArcadeHub /> },
-      { path: 'mastery-map',                    element: <MasteryMap /> },
-      { path: 'gauntlet',                       element: <GauntletMode /> },
+      { path: 'unit/:unitId/boss',              element: <Suspense fallback={<RouteLoadingFallback />}><BossBattlePage /></Suspense> },
+      { path: 'achievements',                   element: <Suspense fallback={<RouteLoadingFallback />}><AchievementsPage /></Suspense> },
+      { path: 'arcade',                         element: <Suspense fallback={<RouteLoadingFallback />}><ArcadeHub /></Suspense> },
+      { path: 'mastery-map',                    element: <Suspense fallback={<RouteLoadingFallback />}><MasteryMap /></Suspense> },
+      { path: 'gauntlet',                       element: <Suspense fallback={<RouteLoadingFallback />}><GauntletMode /></Suspense> },
     ],
   },
 ])

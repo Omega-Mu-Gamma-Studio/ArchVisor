@@ -37,6 +37,42 @@ const MODES = [
   },
 ]
 
+function generateTimeline({ mode, threadCount, stallFreq, totalCycles }) {
+  const data = []
+  const slots = mode === 'smt' ? 2 : 1 // SMT has 2 issue slots per cycle
+
+  for (let c = 0; c < totalCycles; c++) {
+    const cycleSlots = []
+    for (let s = 0; s < slots; s++) {
+      const stallRoll = Math.random()
+      const stallThreshold = stallFreq === 'low' ? 0.15 : stallFreq === 'high' ? 0.55 : 0.35
+      const isStall = stallRoll < stallThreshold
+
+      if (isStall) {
+        cycleSlots.push({ thread: -1, label: 'idle' })
+      } else {
+        let thread
+        if (mode === 'coarse') {
+          // Each thread runs for consecutive cycles before switching
+          const cyclesPerThread = Math.floor(totalCycles / threadCount)
+          thread = Math.min(Math.floor(c / cyclesPerThread), threadCount - 1)
+        } else if (mode === 'fine') {
+          // Round-robin each cycle
+          thread = c % threadCount
+        } else {
+          // SMT: two threads per cycle, alternating pair
+          const pairBase = (Math.floor(c / 2) * 2) % threadCount
+          thread = s === 0 ? pairBase : (pairBase + 1) % threadCount
+        }
+        cycleSlots.push({ thread, label: `T${thread}` })
+      }
+    }
+    data.push({ cycle: c, slots: cycleSlots })
+  }
+
+  return data
+}
+
 export default function MultithreadingVisualizer() {
   const [threadCount, setThreadCount] = useState(4)
   const [stallFreq, setStallFreq] = useState('medium')
@@ -47,42 +83,23 @@ export default function MultithreadingVisualizer() {
 
   const totalCycles = 16
 
-  // Generate timeline data
-  const timeline = useMemo(() => {
-    const data = []
-    const slots = mode === 'smt' ? 2 : 1 // SMT has 2 issue slots per cycle
+  // Timeline involves a random stall roll, so it can't be a render-phase
+  // useMemo (Math.random() during render is impure — React may invoke
+  // render more than once per commit). Instead it's regenerated via an
+  // effect whenever the config actually changes, which is the sanctioned
+  // "resync derived state from a non-deterministic source" pattern.
+  const [timeline, setTimeline] = useState(() =>
+    generateTimeline({ mode, threadCount, stallFreq, totalCycles })
+  )
 
-    for (let c = 0; c < totalCycles; c++) {
-      const cycleSlots = []
-      for (let s = 0; s < slots; s++) {
-        const stallRoll = Math.random()
-        const stallThreshold = stallFreq === 'low' ? 0.15 : stallFreq === 'high' ? 0.55 : 0.35
-        const isStall = stallRoll < stallThreshold
-
-        if (isStall) {
-          cycleSlots.push({ thread: -1, label: 'idle' })
-        } else {
-          let thread
-          if (mode === 'coarse') {
-            // Each thread runs for consecutive cycles before switching
-            const cyclesPerThread = Math.floor(totalCycles / threadCount)
-            thread = Math.min(Math.floor(c / cyclesPerThread), threadCount - 1)
-          } else if (mode === 'fine') {
-            // Round-robin each cycle
-            thread = c % threadCount
-          } else {
-            // SMT: two threads per cycle, alternating pair
-            const pairBase = (Math.floor(c / 2) * 2) % threadCount
-            thread = s === 0 ? pairBase : (pairBase + 1) % threadCount
-          }
-          cycleSlots.push({ thread, label: `T${thread}` })
-        }
-      }
-      data.push({ cycle: c, slots: cycleSlots })
-    }
-
-    return data
-  }, [threadCount, stallFreq, mode, totalCycles])
+  useEffect(() => {
+    // This is exactly the "resync from an external/non-deterministic
+    // source when its inputs change" case the rule's own message
+    // describes as legitimate — Math.random() can't live in a pure
+    // render-phase useMemo, so it has to be re-rolled here instead.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTimeline(generateTimeline({ mode, threadCount, stallFreq, totalCycles }))
+  }, [mode, threadCount, stallFreq, totalCycles])
 
   // Calculate utilization
   const { utilized, total } = useMemo(() => {

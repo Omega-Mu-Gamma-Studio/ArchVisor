@@ -196,7 +196,7 @@ function WSCSection() {
 function MPISection() {
   const [phase, setPhase] = useState(0)
 
-  const handleNext = () => setPhase((p + 1) % 4)
+  const handleNext = () => setPhase((prev) => (prev + 1) % 4)
   const handleReset = () => setPhase(0)
 
   const phases = [

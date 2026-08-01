@@ -296,10 +296,12 @@ function WarpContent() {
           <g key={i}>
             <text x={10} y={48 + i * 30} fill={w.color} fontFamily="var(--mono)" fontSize="8" fontWeight="600">{w.label}</text>
             {[0, 1, 2, 3].map(c => (
-              <rect key={c} x={65 + c * 65} y={36 + i * 30} width={60} height={18} rx={3}
-                fill={`${w.color}33`} stroke={w.color} strokeWidth="0.8"/>
+              <g key={c}>
+                <rect x={65 + c * 65} y={36 + i * 30} width={60} height={18} rx={3}
+                  fill={`${w.color}33`} stroke={w.color} strokeWidth="0.8"/>
+                <text x={65 + c * 65 + 30} y={49 + i * 30} fill={w.color} fontFamily="var(--mono)" fontSize="7" textAnchor="middle" fontWeight="600">C{c + 1}</text>
+              </g>
             ))}
-            <text x={95} y={49 + i * 30} fill={w.color} fontFamily="var(--mono)" fontSize="7" textAnchor="middle" fontWeight="600">C{c + 1}</text>
           </g>
         ))}
 
