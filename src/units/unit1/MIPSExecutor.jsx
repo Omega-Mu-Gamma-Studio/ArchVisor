@@ -107,22 +107,56 @@ const mipsTheme = EditorView.theme({
   },
 })
 
-export default function MIPSExecutor() {
+// Registers $t0-$t3 resolve to the same index (8-11) under both the
+// interpreter's internal numbering and standard MIPS ABI names, so it's
+// safe to look them up this way for the boss win-check below. (Registers
+// from $t4 up diverge between the two — see mipsInterpreter.js.)
+const SAFE_REGISTER_INDEX = { t0: 8, t1: 9, t2: 10, t3: 11 }
+
+export default function MIPSExecutor({ initialScenario = null, onScenarioSolved } = {}) {
   const editorRef = useRef(null)
   const viewRef = useRef(null)
+  const firedRef = useRef(false)
   const [editorContent, setEditorContent] = useState(
-    useMipsStore.getState().instructionList.join('\n')
+    initialScenario?.program
+      ? initialScenario.program.join('\n')
+      : useMipsStore.getState().instructionList.join('\n')
   )
 
   const {
     instructionList,
     currentLine,
+    registers,
     executionLog,
     setInstructions,
     stepForward,
     runAll,
     reset,
   } = useMipsStore()
+
+  // ── Preload boss scenario on mount ───────────────────────
+  useEffect(() => {
+    if (initialScenario?.program) {
+      setInstructions(initialScenario.program)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── Boss win condition: derived, not stored in state ─────
+  const targetIdx = initialScenario ? SAFE_REGISTER_INDEX[initialScenario.targetRegister] : undefined
+  const solved = Boolean(
+    initialScenario &&
+    registers &&
+    targetIdx !== undefined &&
+    registers[`$${targetIdx}`] === initialScenario.targetValue
+  )
+
+  useEffect(() => {
+    if (solved && !firedRef.current && onScenarioSolved) {
+      firedRef.current = true
+      onScenarioSolved()
+    }
+  }, [solved, onScenarioSolved])
 
   // ── Init CodeMirror ──────────────────────────────────────
   useEffect(() => {
@@ -204,6 +238,20 @@ add $t4, $t2, $s0`
           Step through MIPS instructions and watch the register file update live.
         </p>
       </div>
+
+      {initialScenario && (
+        <div style={{
+          padding: '10px 16px', borderRadius: '10px',
+          border: `1px solid ${solved ? 'rgba(34,197,94,0.4)' : 'var(--accent-border)'}`,
+          background: solved ? 'rgba(34,197,94,0.1)' : 'var(--accent-dim)',
+          fontFamily: 'var(--mono)', fontSize: '12px',
+          color: solved ? '#22c55e' : 'var(--accent-text)',
+        }}>
+          {solved
+            ? `✓ Boss cleared — $${initialScenario.targetRegister} = ${initialScenario.targetValue}`
+            : `🎯 Objective: run the program and get $${initialScenario.targetRegister} to equal ${initialScenario.targetValue}`}
+        </div>
+      )}
 
       {/* Main Layout: Editor + Registers */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '16px', alignItems: 'start' }}>

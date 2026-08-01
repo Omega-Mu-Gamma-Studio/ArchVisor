@@ -13,24 +13,30 @@
  * - Step Forward / Back / Run All / Reset controls
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { simulateCache } from '../../engines/cacheSimulator.js'
 import StepControls from '../../components/shared/StepControls.jsx'
 
 const DEFAULT_REFS = 'R:0x00 W:0x40 R:0x00 R:0x80 W:0x40'
 
-export default function CacheSimulator() {
-  // ── Config state ─────────────────────────────────────────
-  const [cacheSize, setCacheSize] = useState(4096)
-  const [blockSize, setBlockSize] = useState(64)
-  const [associativity, setAssociativity] = useState(1)
-  const [replacementPolicy, setReplacementPolicy] = useState('LRU')
-  const [writePolicy, setWritePolicy] = useState('write-through')
+function scenarioRefString(scenario) {
+  if (!scenario?.referenceString) return null
+  return scenario.referenceString.map((addr) => `R:${addr}`).join(' ')
+}
 
-  const [refInput, setRefInput] = useState(DEFAULT_REFS)
+export default function CacheSimulator({ initialScenario = null, onScenarioSolved } = {}) {
+  // ── Config state ─────────────────────────────────────────
+  const [cacheSize, setCacheSize] = useState(initialScenario?.cacheSize ?? 4096)
+  const [blockSize, setBlockSize] = useState(initialScenario?.blockSize ?? 64)
+  const [associativity, setAssociativity] = useState(initialScenario?.associativity ?? 1)
+  const [replacementPolicy, setReplacementPolicy] = useState(initialScenario?.replacementPolicy ?? 'LRU')
+  const [writePolicy, setWritePolicy] = useState(initialScenario?.writePolicy ?? 'write-through')
+
+  const [refInput, setRefInput] = useState(scenarioRefString(initialScenario) ?? DEFAULT_REFS)
   const [currentStep, setCurrentStep] = useState(-1)
   const [isRunning, setIsRunning] = useState(false)
+  const firedRef = useRef(false)
 
   // Parse reference string
   const referenceString = useMemo(() => {
@@ -88,6 +94,16 @@ export default function CacheSimulator() {
     setIsRunning(false)
   }
 
+  // ── Boss win condition: derived, not stored in state ─────
+  const solved = Boolean(initialScenario && totalSteps > 0 && currentStep >= totalSteps - 1)
+
+  useEffect(() => {
+    if (solved && !firedRef.current && onScenarioSolved) {
+      firedRef.current = true
+      onScenarioSolved()
+    }
+  }, [solved, onScenarioSolved])
+
   // Get visible cache state from the latest visible step
   const latestState = visibleSteps.length > 0
     ? visibleSteps[visibleSteps.length - 1].cacheState
@@ -117,9 +133,23 @@ export default function CacheSimulator() {
         </p>
       </div>
 
+      {initialScenario && (
+        <div style={{
+          padding: '10px 16px', borderRadius: '10px',
+          border: `1px solid ${solved ? 'rgba(34,197,94,0.4)' : 'var(--accent-border)'}`,
+          background: solved ? 'rgba(34,197,94,0.1)' : 'var(--accent-dim)',
+          fontFamily: 'var(--mono)', fontSize: '12px',
+          color: solved ? '#22c55e' : 'var(--accent-text)',
+        }}>
+          {solved
+            ? `✓ Boss cleared — you rode out all ${initialScenario.referenceString.length} accesses`
+            : `🎯 Objective: step (or Run All) through all ${initialScenario.referenceString.length} accesses below`}
+        </div>
+      )}
+
       {/* Config panel */}
       <div className="glass-card" style={{ padding: '20px', display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <ConfigSelect label="Cache Size" value={cacheSize} onChange={v => { setCacheSize(parseInt(v)); handleReset() }} options={[1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144].map(n => ({ value: n, label: n >= 1024 ? `${n / 1024} KB` : `${n} B` }))} />
+        <ConfigSelect label="Cache Size" value={cacheSize} onChange={v => { setCacheSize(parseInt(v)); handleReset() }} options={[256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144].map(n => ({ value: n, label: n >= 1024 ? `${n / 1024} KB` : `${n} B` }))} />
         <ConfigSelect label="Block Size" value={blockSize} onChange={v => { setBlockSize(parseInt(v)); handleReset() }} options={[16, 32, 64, 128].map(n => ({ value: n, label: `${n} B` }))} />
         <ConfigSelect label="Associativity" value={associativity} onChange={v => { setAssociativity(parseInt(v)); handleReset() }} options={[
           { value: 1, label: 'Direct-Mapped' },

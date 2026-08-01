@@ -88,11 +88,14 @@ addi $t1, $zero, 10
 add $t2, $t0, $t1
 sub $t3, $t1, $t0`
 
-export default function PipelineAnimator() {
+export default function PipelineAnimator({ initialScenario = null, onScenarioSolved } = {}) {
   const [mode, setMode] = useState('no-fwd')
-  const [editorContent, setEditorContent] = useState(DEFAULT_TEXT)
+  const [editorContent, setEditorContent] = useState(
+    initialScenario?.instructions ? initialScenario.instructions.join('\n') : DEFAULT_TEXT
+  )
   const [currentCycle, setCurrentCycle] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
+  const firedRef = useRef(false)
   const editorRef = useRef(null)
   const viewRef = useRef(null)
 
@@ -153,6 +156,16 @@ export default function PipelineAnimator() {
   const canStepForward = currentCycle < totalSteps
   const canStepBack = currentCycle > 0
 
+  // ── Boss win condition: derived, not stored in state ─────
+  const solved = Boolean(initialScenario && totalSteps > 0 && currentCycle >= totalSteps)
+
+  useEffect(() => {
+    if (solved && !firedRef.current && onScenarioSolved) {
+      firedRef.current = true
+      onScenarioSolved()
+    }
+  }, [solved, onScenarioSolved])
+
   const handleStepForward = () => {
     if (currentCycle < totalSteps) setCurrentCycle(c => c + 1)
   }
@@ -205,6 +218,20 @@ export default function PipelineAnimator() {
           Animated cycle-by-cycle 5-stage MIPS pipeline timing diagram with hazard visualization.
         </p>
       </div>
+
+      {initialScenario && (
+        <div style={{
+          padding: '10px 16px', borderRadius: '10px',
+          border: `1px solid ${solved ? 'rgba(34,197,94,0.4)' : 'var(--accent-border)'}`,
+          background: solved ? 'rgba(34,197,94,0.1)' : 'var(--accent-dim)',
+          fontFamily: 'var(--mono)', fontSize: '12px',
+          color: solved ? '#22c55e' : 'var(--accent-text)',
+        }}>
+          {solved
+            ? '✓ Boss cleared — you ran every hazard in this chain to the last cycle'
+            : '🎯 Objective: step (or Run All) through every cycle to the end, hazards and all'}
+        </div>
+      )}
 
       {/* Mode toggle */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
